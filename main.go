@@ -1,23 +1,27 @@
 package main
 
 import (
-	"daemon/db"
-	"daemon/handler"
+	"context"
 	"embed"
-	"flag"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	_ "embed"
+
 	"github.com/go-chi/chi/v5"
+	"github.com/joseph0x45/surge/internal/buildinfo"
+	"github.com/joseph0x45/surge/internal/db"
+	"github.com/joseph0x45/surge/internal/handlers"
 	"github.com/joseph0x45/goutils"
-	"github.com/joseph0x45/sad"
 )
 
-var version = "debug"
+//go:embed tailwind.css
+var tailwindCSS string
 
 //go:embed templates
 var templatesFS embed.FS
@@ -26,48 +30,53 @@ var templates *template.Template
 
 func init() {
 	var err error
-	templates, err = template.ParseFS(
-		templatesFS,
-    "*.html",
-	)
+	templates, err = template.ParseFS(templatesFS, "templates/*.html")
 	if err != nil {
 		panic(err)
 	}
 }
 
 func main() {
-	goutils.SetAppName("daemon")
-	versionFlag := flag.Bool("version", false, "Display the current version")
-	generateServiceFileFlag := flag.Bool("generate-service-file", false, "Generate a service file")
-	flag.Parse()
-	if *versionFlag {
-		fmt.Printf("Vis %s\n", version)
-		return
-	}
-	if *generateServiceFileFlag {
-		goutils.GenerateServiceFile("My awesome daemon")
-		return
-	}
-	dbPath := goutils.Setup()
-	conn := db.Connect(sad.DBConnectionOptions{
-		EnableForeignKeys: true,
-		DatabasePath:      dbPath,
-	})
-	port := os.Getenv("PORT")
-	if port == "" {
+	goutils.SetAppName(buildinfo.AppName)
+
+
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
 		port = "8080"
 	}
+	conn := db.GetConn(false)
+	defer conn.Close()
+	handler := handlers.NewHandler(conn, templates, buildinfo.Version)
+
 	r := chi.NewRouter()
-	handler := handler.NewHandler(templates, conn, version)
 	server := http.Server{
-		Addr:         ":" + port,
 		Handler:      r,
-		ReadTimeout:  time.Minute,
+		Addr:         ":" + port,
 		WriteTimeout: time.Minute,
+		ReadTimeout:  time.Minute,
+		IdleTimeout:  time.Minute,
 	}
+
 	handler.RegisterRoutes(r)
-	log.Printf("Starting server on  http://0.0.0.0:%s", port)
-	if err := server.ListenAndServe(); err != nil {
-		panic(err)
+
+	goutils.ServeJS(r, "/tailwindcss", tailwindCSS)
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		log.Printf("Starting %s %s on http://0.0.0.0:%s\n", buildinfo.AppName, buildinfo.Version, port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server startup failed (addr=%s): %v", server.Addr, err)
+		}
+	}()
+
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Server shutdown failed: %s\n", err)
 	}
 }

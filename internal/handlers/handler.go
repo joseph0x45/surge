@@ -1,30 +1,25 @@
-package handler
+package handlers
 
 import (
-	"daemon/db"
 	"html/template"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/joseph0x45/surge/internal/db"
 )
 
 type Handler struct {
-	templates *template.Template
 	conn      *db.Conn
+	templates *template.Template
 	version   string
 }
 
 func NewHandler(
-	templates *template.Template,
 	conn *db.Conn,
+	templates *template.Template,
 	version string,
 ) *Handler {
 	return &Handler{
-		templates: templates,
 		conn:      conn,
+		templates: templates,
 		version:   version,
 	}
-}
-
-func (h *Handler) RegisterRoutes(r chi.Router) {
-
 }

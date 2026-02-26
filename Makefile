@@ -1,9 +1,12 @@
 VERSION := $(shell git describe --tags --abbrev=0)
-APP := daemon
+APP := fluxus
 
-pico.min.css:
-	curl https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css > pico.min.css
+build: tailwind.css
+	go build .
 
-release:
+tailwind.css:
+	curl https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4 > tailwind.css
+
+release: tailwind.css
 	GOOS=linux GOARCH=amd64 \
 		go build -tags release -ldflags "-X main.version=$(VERSION)" -o $(APP)

@@ -1,4 +1,4 @@
-module daemon
+module github.com/joseph0x45/surge
 
 go 1.25.5
 
