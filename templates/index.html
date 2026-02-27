@@ -1,12 +1,263 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title></title>
-    <link href="css/style.css" rel="stylesheet">
-  </head>
-  <body>
-  
-  </body>
+{{define "index"}}
+
+{{define "styles"}}
+<style>
+  body {
+    font-family: 'DM Mono', monospace;
+  }
+
+  h1,
+  .serif {
+    font-family: 'DM Serif Display', serif;
+  }
+
+  .tap-ring {
+    box-shadow: 0 0 0 0 rgba(120, 100, 80, 0.15);
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+  }
+
+  .tap-ring:active {
+    transform: scale(0.97);
+  }
+
+  .tap-ring.running {
+    animation: pulse-ring 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 rgba(120, 100, 80, 0.15);
+    }
+
+    60% {
+      box-shadow: 0 0 0 22px rgba(120, 100, 80, 0);
+    }
+
+    100% {
+      box-shadow: 0 0 0 0 rgba(120, 100, 80, 0);
+    }
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .status-dot.synced {
+    background: #86b98a;
+  }
+
+  .status-dot.pending {
+    background: #e0b87a;
+  }
+
+  .status-dot.offline {
+    background: #d4846a;
+  }
+
+  .tick {
+    animation: tick-flash 0.4s ease;
+  }
+
+  @keyframes tick-flash {
+    0% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+</style>
+{{end}}
+
+<body class="min-h-screen bg-[#f7f4ef] flex flex-col items-center justify-between px-6 py-10 select-none">
+
+  <!-- Header -->
+  <div class="w-full max-w-sm flex items-center justify-between">
+    <h1 class="serif text-2xl text-[#2e2a24]">Surge.</h1>
+    <div class="text-xs text-[#9e9488] uppercase tracking-widest">
+      <!-- Day label -->
+      <span id="day-label"></span>
+    </div>
+  </div>
+
+  <!-- Main tap area -->
+  <div class="flex flex-col items-center gap-10 flex-1 justify-center">
+
+    <!-- Timer -->
+    <div class="text-center">
+      <div id="timer" class="text-[72px] leading-none tracking-tight text-[#2e2a24] tabular-nums"
+        style="font-family:'DM Mono',monospace;">
+        00:00:00
+      </div>
+      <div id="state-label" class="mt-3 text-xs uppercase tracking-[0.2em] text-[#b0a898]">tap to start</div>
+    </div>
+
+    <!-- Tap button -->
+    <button id="tap-btn"
+      class="tap-ring w-36 h-36 rounded-full bg-[#ede8e0] border border-[#d8d0c4] flex items-center justify-center cursor-pointer focus:outline-none"
+      onclick="toggleTimer()" aria-label="Start or pause timer">
+      <!-- Play icon -->
+      <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-[#7a6f63]" viewBox="0 0 24 24"
+        fill="currentColor">
+        <path d="M8 5v14l11-7z" />
+      </svg>
+      <!-- Pause icon -->
+      <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-[#7a6f63] hidden"
+        viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+      </svg>
+    </button>
+
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="w-full max-w-sm flex items-center justify-between">
+
+    <!-- Sync status -->
+    <div class="flex items-center gap-2 text-xs text-[#9e9488]">
+      <span id="status-dot" class="status-dot synced"></span>
+      <span id="status-text">synced</span>
+    </div>
+
+    <!-- Sync button -->
+    <button onclick="syncData()"
+      class="text-xs uppercase tracking-widest text-[#9e9488] border border-[#d8d0c4] rounded-full px-4 py-1.5 hover:bg-[#ede8e0] hover:text-[#5a5047] transition-colors">
+      sync
+    </button>
+
+  </div>
+
+</body>
+
+<script>
+  // --- State ---
+  let running = false;
+  let startTime = null;
+  let elapsed = 0; // in seconds
+  let interval = null;
+
+  // --- Init ---
+  const today = new Date();
+  document.getElementById('day-label').textContent = today.toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'});
+
+  // Load from localStorage
+  const savedKey = todayKey();
+  const saved = JSON.parse(localStorage.getItem(savedKey) || '{}');
+  elapsed = saved.elapsed || 0;
+  renderTimer(elapsed);
+
+  // --- Toggle ---
+  function toggleTimer() {
+    if (running) {
+      pause();
+    } else {
+      start();
+    }
+  }
+
+  function start() {
+    running = true;
+    startTime = Date.now() - elapsed * 1000;
+    interval = setInterval(tick, 1000);
+    document.getElementById('icon-play').classList.add('hidden');
+    document.getElementById('icon-pause').classList.remove('hidden');
+    document.getElementById('tap-btn').classList.add('running');
+    document.getElementById('state-label').textContent = 'sitting';
+    setStatus('pending');
+  }
+
+  function pause() {
+    running = false;
+    clearInterval(interval);
+    elapsed = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById('icon-play').classList.remove('hidden');
+    document.getElementById('icon-pause').classList.add('hidden');
+    document.getElementById('tap-btn').classList.remove('running');
+    document.getElementById('state-label').textContent = 'paused — tap to resume';
+    saveLocal();
+  }
+
+  function tick() {
+    elapsed = Math.floor((Date.now() - startTime) / 1000);
+    renderTimer(elapsed);
+    // tick flash every 10s as a subtle heartbeat
+    if (elapsed % 10 === 0) {
+      const t = document.getElementById('timer');
+      t.classList.remove('tick');
+      void t.offsetWidth; // reflow
+      t.classList.add('tick');
+    }
+  }
+
+  function renderTimer(s) {
+    const h = String(Math.floor(s / 3600)).padStart(2, '0');
+    const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+    const sec = String(s % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = `${h}:${m}:${sec}`;
+  }
+
+  // --- Storage ---
+  function todayKey() {
+    const d = new Date();
+    return `sit-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  }
+
+  function saveLocal() {
+    const data = {elapsed, date: todayKey(), synced: false};
+    localStorage.setItem(todayKey(), JSON.stringify(data));
+  }
+
+  // --- Sync ---
+  async function syncData() {
+    if (running) pause(); // pause before syncing so we get accurate value
+    saveLocal();
+    setStatus('pending');
+
+    const payload = {date: todayKey(), elapsed};
+
+    try {
+      // 🔧 Replace with your actual endpoint:
+      const res = await fetch('/api/sync', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('Server error');
+
+      const data = JSON.parse(localStorage.getItem(todayKey()) || '{}');
+      data.synced = true;
+      localStorage.setItem(todayKey(), JSON.stringify(data));
+      setStatus('synced');
+
+    } catch (e) {
+      setStatus('offline');
+    }
+  }
+
+  function setStatus(state) {
+    const dot = document.getElementById('status-dot');
+    const txt = document.getElementById('status-text');
+    dot.className = `status-dot ${state}`;
+    txt.textContent = state === 'synced' ? 'synced' : state === 'pending' ? 'pending sync' : 'offline';
+  }
+
+  // Save on page hide
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && running) {
+      elapsed = Math.floor((Date.now() - startTime) / 1000);
+      saveLocal();
+    }
+  });
+</script>
+
 </html>
+{{end}}

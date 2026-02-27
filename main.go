@@ -14,10 +14,11 @@ import (
 	_ "embed"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/joseph0x45/goutils"
 	"github.com/joseph0x45/surge/internal/buildinfo"
+	"github.com/joseph0x45/surge/internal/cli"
 	"github.com/joseph0x45/surge/internal/db"
 	"github.com/joseph0x45/surge/internal/handlers"
-	"github.com/joseph0x45/goutils"
 )
 
 //go:embed tailwind.css
@@ -39,6 +40,7 @@ func init() {
 func main() {
 	goutils.SetAppName(buildinfo.AppName)
 
+	cli.DispatchCommands(os.Args)
 
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
