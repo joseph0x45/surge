@@ -24,4 +24,18 @@ var migrations = []sad.Migration{
       );
     `,
 	},
+	{
+		Version: 3,
+		Name:    "create_logs",
+		SQL: `
+      create table logs (
+        id text not null primary key,
+        user_id text not null references users(id),
+        date_str text not null,
+        elapsed integer not null,
+        created_at integer not null,
+        unique(user_id, date_str)
+      );
+    `,
+	},
 }

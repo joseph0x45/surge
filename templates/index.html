@@ -6,7 +6,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Surge</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tailwindcss"></script>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap"
     rel="stylesheet" />
@@ -233,7 +233,6 @@
     const payload = {date: todayKey(), elapsed};
 
     try {
-      // 🔧 Replace with your actual endpoint:
       const res = await fetch('/api/sync', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},

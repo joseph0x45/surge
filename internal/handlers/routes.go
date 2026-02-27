@@ -6,7 +6,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Use(h.authRequired)
 		r.Get("/", h.RenderApp)
-		r.Post("/sync", h.Sync)
+		r.Post("/api/sync", h.Sync)
 		r.Get("/stats", h.RenderStatsPage)
 	})
 
