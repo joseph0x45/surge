@@ -14,4 +14,14 @@ var migrations = []sad.Migration{
       );
     `,
 	},
+	{
+		Version: 2,
+		Name:    "create_sessions",
+		SQL: `
+      create table sessions (
+        id text not null primary key,
+        user_id text not null references users(id)
+      );
+    `,
+	},
 }

@@ -1,87 +1,96 @@
-{{define "index"}}
+{{define "main"}}
+<!DOCTYPE html>
+<html lang="en">
 
-{{define "styles"}}
-<style>
-  body {
-    font-family: 'DM Mono', monospace;
-  }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surge</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'DM Mono', monospace;
+    }
 
-  h1,
-  .serif {
-    font-family: 'DM Serif Display', serif;
-  }
+    h1,
+    .serif {
+      font-family: 'DM Serif Display', serif;
+    }
 
-  .tap-ring {
-    box-shadow: 0 0 0 0 rgba(120, 100, 80, 0.15);
-    transition: box-shadow 0.2s ease, transform 0.15s ease;
-  }
-
-  .tap-ring:active {
-    transform: scale(0.97);
-  }
-
-  .tap-ring.running {
-    animation: pulse-ring 2.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse-ring {
-    0% {
+    .tap-ring {
       box-shadow: 0 0 0 0 rgba(120, 100, 80, 0.15);
+      transition: box-shadow 0.2s ease, transform 0.15s ease;
     }
 
-    60% {
-      box-shadow: 0 0 0 22px rgba(120, 100, 80, 0);
+    .tap-ring:active {
+      transform: scale(0.97);
     }
 
-    100% {
-      box-shadow: 0 0 0 0 rgba(120, 100, 80, 0);
-    }
-  }
-
-  .status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-
-  .status-dot.synced {
-    background: #86b98a;
-  }
-
-  .status-dot.pending {
-    background: #e0b87a;
-  }
-
-  .status-dot.offline {
-    background: #d4846a;
-  }
-
-  .tick {
-    animation: tick-flash 0.4s ease;
-  }
-
-  @keyframes tick-flash {
-    0% {
-      opacity: 1;
+    .tap-ring.running {
+      animation: pulse-ring 2.5s ease-in-out infinite;
     }
 
-    50% {
-      opacity: 0.4;
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(120, 100, 80, 0.15);
+      }
+
+      60% {
+        box-shadow: 0 0 0 22px rgba(120, 100, 80, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(120, 100, 80, 0);
+      }
     }
 
-    100% {
-      opacity: 1;
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
     }
-  }
-</style>
-{{end}}
+
+    .status-dot.synced {
+      background: #86b98a;
+    }
+
+    .status-dot.pending {
+      background: #e0b87a;
+    }
+
+    .status-dot.offline {
+      background: #d4846a;
+    }
+
+    .tick {
+      animation: tick-flash 0.4s ease;
+    }
+
+    @keyframes tick-flash {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
 
 <body class="min-h-screen bg-[#f7f4ef] flex flex-col items-center justify-between px-6 py-10 select-none">
 
   <!-- Header -->
   <div class="w-full max-w-sm flex items-center justify-between">
-    <h1 class="serif text-2xl text-[#2e2a24]">Surge.</h1>
+    <h1 class="serif text-2xl text-[#2e2a24]">surge.</h1>
     <div class="text-xs text-[#9e9488] uppercase tracking-widest">
       <!-- Day label -->
       <span id="day-label"></span>

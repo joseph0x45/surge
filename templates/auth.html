@@ -1,3 +1,4 @@
+{{define "auth"}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -21,10 +22,6 @@
     input:-webkit-autofill {
       -webkit-box-shadow: 0 0 0 100px #ede8e0 inset;
       -webkit-text-fill-color: #2e2a24;
-    }
-
-    .btn-press:active {
-      transform: scale(0.98);
     }
 
     @keyframes fade-up {
@@ -58,8 +55,8 @@
 <body class="min-h-screen bg-[#f7f4ef] flex flex-col items-center justify-between px-6 py-10 select-none">
 
   <!-- Header -->
-  <div class="w-full max-w-sm flex items-center justify-between fade-up">
-    <h1 class="serif text-2xl text-[#2e2a24]">Surge.</h1>
+  <div class="w-full max-w-sm fade-up">
+    <h1 class="serif text-2xl text-[#2e2a24]">surge.</h1>
   </div>
 
   <!-- Form -->
@@ -70,51 +67,40 @@
       <p class="text-xs text-[#b0a898] mt-2 tracking-wide">sign in to continue tracking</p>
     </div>
 
-    <div class="flex flex-col gap-3 fade-up-delay">
+    <form action="/auth" method="POST" class="flex flex-col gap-3 fade-up-delay">
 
-      <!-- Username -->
       <div class="flex flex-col gap-1.5">
         <label for="username" class="text-xs uppercase tracking-widest text-[#9e9488]">username</label>
-        <input id="username" type="text" autocomplete="username" placeholder="you"
+        <input id="username" name="username" type="text" autocomplete="off" placeholder="you" required
           class="bg-[#ede8e0] border border-[#d8d0c4] rounded-xl px-4 py-3 text-sm text-[#2e2a24] placeholder-[#c0b8b0] focus:outline-none focus:border-[#a89880] transition-colors" />
       </div>
 
-      <!-- Password -->
       <div class="flex flex-col gap-1.5">
         <label for="password" class="text-xs uppercase tracking-widest text-[#9e9488]">password</label>
-        <div class="relative">
-          <input id="password" type="password" autocomplete="current-password" placeholder="••••••••"
-            class="w-full bg-[#ede8e0] border border-[#d8d0c4] rounded-xl px-4 py-3 text-sm text-[#2e2a24] placeholder-[#c0b8b0] focus:outline-none focus:border-[#a89880] transition-colors" />
-          <button type="button" onclick="togglePassword()"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-[#b0a898] hover:text-[#7a6f63] transition-colors"
-            aria-label="Toggle password visibility">
-            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          </button>
-        </div>
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••"
+          required
+          class="bg-[#ede8e0] border border-[#d8d0c4] rounded-xl px-4 py-3 text-sm text-[#2e2a24] placeholder-[#c0b8b0] focus:outline-none focus:border-[#a89880] transition-colors" />
       </div>
 
-      <!-- Error message -->
-      <p id="error-msg" class="text-xs text-[#d4846a] hidden">incorrect username or password.</p>
+      {{ if .Error }}
+      <p class="text-xs text-[#d4846a]">{{ .Error }}</p>
+      {{ end }}
 
-    </div>
+      <button type="submit"
+        class="mt-2 bg-[#2e2a24] text-[#f7f4ef] rounded-xl py-3.5 text-xs uppercase tracking-widest hover:bg-[#4a4438] transition-colors active:scale-[0.98]">
+        sign in
+      </button>
 
-    <!-- Submit -->
-    <button id="login-btn" onclick="handleLogin()"
-      class="btn-press bg-[#2e2a24] text-[#f7f4ef] rounded-xl py-3.5 text-xs uppercase tracking-widest hover:bg-[#4a4438] transition-colors fade-up-delay-2">
-      sign in
-    </button>
+    </form>
 
   </div>
 
   <!-- Footer -->
   <div class="w-full max-w-sm fade-up-delay-2">
-    <p class="text-xs text-[#c0b8b0] text-center tracking-wide">sit tracker — personal edition</p>
+    <p class="text-xs text-[#c0b8b0] text-center tracking-wide">surge — personal edition</p>
   </div>
 
 </body>
 
 </html>
+{{end}}
