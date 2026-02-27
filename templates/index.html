@@ -128,19 +128,24 @@
   </div>
 
   <!-- Bottom bar -->
-  <div class="w-full max-w-sm flex items-center justify-between">
+  <div class="w-full max-w-sm flex items-center justify-between fade-up-delay-2">
 
-    <!-- Sync status -->
     <div class="flex items-center gap-2 text-xs text-[#9e9488]">
       <span id="status-dot" class="status-dot synced"></span>
       <span id="status-text">synced</span>
     </div>
 
-    <!-- Sync button -->
-    <button onclick="syncData()"
-      class="text-xs uppercase tracking-widest text-[#9e9488] border border-[#d8d0c4] rounded-full px-4 py-1.5 hover:bg-[#ede8e0] hover:text-[#5a5047] transition-colors">
-      sync
-    </button>
+    <div class="flex items-center gap-2">
+
+      <a href="/stats" class="text-xs uppercase tracking-widest text-[#9e9488] border border-[#d8d0c4] rounded-full px-4 py-1.5
+      hover:bg-[#ede8e0] hover:text-[#5a5047] transition-colors">
+        stats
+      </a>
+      <button onclick="syncData()"
+        class="text-xs uppercase tracking-widest text-[#9e9488] border border-[#d8d0c4] rounded-full px-4 py-1.5 hover:bg-[#ede8e0] hover:text-[#5a5047] transition-colors">
+        sync
+      </button>
+    </div>
 
   </div>
 

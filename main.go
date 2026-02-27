@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -31,7 +32,15 @@ var templates *template.Template
 
 func init() {
 	var err error
-	templates, err = template.ParseFS(templatesFS, "templates/*.html")
+	funcMap := template.FuncMap{
+		"formatElapsed": func(s int) string {
+			h := s / 3600
+			m := (s % 3600) / 60
+			sec := s % 60
+			return fmt.Sprintf("%02d:%02d:%02d", h, m, sec)
+		},
+	}
+	templates, err = template.New("").Funcs(funcMap).ParseFS(templatesFS, "templates/*.html")
 	if err != nil {
 		panic(err)
 	}
