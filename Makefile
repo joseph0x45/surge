@@ -1,5 +1,5 @@
 VERSION := $(shell git describe --tags --abbrev=0)
-APP := fluxus
+APP := surge
 
 build: tailwind.css
 	go build .
