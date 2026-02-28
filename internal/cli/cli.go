@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/joseph0x45/goutils"
+	"github.com/joseph0x45/surge/internal/buildinfo"
 )
 
 func printUsage() {
@@ -20,11 +21,14 @@ func DispatchCommands(args []string) {
 	case "help":
 		printUsage()
 		os.Exit(0)
+	case "version":
+		fmt.Println(buildinfo.AppName, buildinfo.Version)
+		os.Exit(0)
 	case "create-user":
 		os.Exit(createUser(args[2:]))
 	case "service-file":
 		goutils.GenerateServiceFile("Surge, simple sitting time tracker")
-    os.Exit(0)
+		os.Exit(0)
 	default:
 		fmt.Fprintf(os.Stderr, "Unrecognized command '%s'\n", cmd)
 		printUsage()
