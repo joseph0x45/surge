@@ -9,7 +9,21 @@ import (
 )
 
 func printUsage() {
-	fmt.Println("Usage:")
+	fmt.Printf(`Surge %s
+
+Usage:
+  surge <command> [flags]
+
+Commands:
+  version                        Print the current version
+  help                           Print this help message
+  create-user                    Create a new user
+    -username  string            Username
+    -password  string            Password
+    -limit     int               Max number of seconds to sit
+  service-file                   Generate a systemd service file
+
+`, buildinfo.Version)
 }
 
 func DispatchCommands(args []string) {
