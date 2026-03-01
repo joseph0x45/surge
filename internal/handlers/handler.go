@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/joseph0x45/surge/internal/db"
+	"github.com/joseph0x45/surge/internal/models"
 )
 
 type Handler struct {
@@ -32,7 +33,14 @@ func (h *Handler) render(w http.ResponseWriter, templateName string, data any) {
 }
 
 func (h *Handler) RenderApp(w http.ResponseWriter, r *http.Request) {
-	if err := h.templates.ExecuteTemplate(w, "main", nil); err != nil {
+	user, ok := r.Context().Value("user").(*models.User)
+	if !ok {
+		http.Redirect(w, r, "/auth", http.StatusSeeOther)
+		return
+	}
+	if err := h.templates.ExecuteTemplate(w, "main", map[string]any{
+		"User": user,
+	}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

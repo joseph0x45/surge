@@ -6,16 +6,19 @@ import (
 	"log"
 	"os"
 
+	"github.com/joseph0x45/goutils"
 	"github.com/joseph0x45/surge/internal/db"
 	"github.com/joseph0x45/surge/internal/models"
-	"github.com/joseph0x45/goutils"
 	"github.com/matoous/go-nanoid/v2"
 )
 
+const AN_HOUR_IN_SECONDS = 3600
+
 func createUser(args []string) int {
-	flagSet := flag.NewFlagSet("create-user", flag.ContinueOnError)
+	flagSet := flag.NewFlagSet("create-user", flag.ExitOnError)
 	username := flagSet.String("username", "", "The new user's username")
 	password := flagSet.String("password", "", "The new user's password")
+	limit := flagSet.Int("limit", AN_HOUR_IN_SECONDS, "Max number of seconds to sit")
 	flagSet.Parse(args)
 	if *username == "" || *password == "" {
 		fmt.Fprintln(os.Stderr, "username and password are required")
@@ -47,9 +50,10 @@ func createUser(args []string) int {
 		return 1
 	}
 	user := &models.User{
-		ID:       id,
-		Username: *username,
-		Password: hash,
+		ID:        id,
+		Username:  *username,
+		Password:  hash,
+		TimeLimit: *limit,
 	}
 	if err := conn.InsertUser(user); err != nil {
 		fmt.Fprintln(os.Stderr, err)

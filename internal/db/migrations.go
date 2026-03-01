@@ -10,7 +10,8 @@ var migrations = []sad.Migration{
       create table users (
         id text not null primary key,
         username text not null unique,
-        password text not null
+        password text not null,
+        time_limit integer not null
       );
     `,
 	},

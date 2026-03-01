@@ -48,10 +48,10 @@ func (c *Conn) GetUser(by, value string) (*models.User, error) {
 func (c *Conn) InsertUser(user *models.User) error {
 	const query = `
     insert into users (
-      id, username, password
+      id, username, password, time_limit
     )
     values (
-      :id, :username, :password
+      :id, :username, :password, :time_limit
     );
   `
 	if _, err := c.db.NamedExec(query, user); err != nil {
@@ -68,4 +68,12 @@ func (c *Conn) UsernameExists(username string) (bool, error) {
 		return false, fmt.Errorf("Error while checking for username existence: %w", err)
 	}
 	return exists, nil
+}
+
+func (c *Conn) UpdateLimit(userID string, limit int) error {
+	const query = "update users set limit=? where id=?"
+	if _, err := c.db.Exec(query, limit, userID); err != nil {
+    return fmt.Errorf("Error while updating limit: %w", err)
+	}
+	return nil
 }

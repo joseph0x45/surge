@@ -98,7 +98,7 @@
   </div>
 
   <!-- Main tap area -->
-  <div class="flex flex-col items-center gap-10 flex-1 justify-center">
+  <div class="flex flex-col items-center gap-10 flex-1 justify-center" id="app" data-limit="{{ .User.TimeLimit }}">
 
     <!-- Timer -->
     <div class="text-center">
@@ -152,33 +152,31 @@
 </body>
 
 <script>
-  // --- State ---
+  const limit = parseInt(document.getElementById('app').dataset.limit);
   let running = false;
   let startTime = null;
-  let elapsed = 0; // in seconds
+  let elapsed = 0;
+  let sessionElapsed = 0;
+  let limitReached = false;
   let interval = null;
 
-  // --- Init ---
+  // Init
   const today = new Date();
   document.getElementById('day-label').textContent = today.toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'});
 
-  // Load from localStorage
   const savedKey = todayKey();
   const saved = JSON.parse(localStorage.getItem(savedKey) || '{}');
   elapsed = saved.elapsed || 0;
   renderTimer(elapsed);
 
-  // --- Toggle ---
   function toggleTimer() {
-    if (running) {
-      pause();
-    } else {
-      start();
-    }
+    running ? pause() : start();
   }
 
   function start() {
     running = true;
+    sessionElapsed = 0;
+    limitReached = false;
     startTime = Date.now() - elapsed * 1000;
     interval = setInterval(tick, 1000);
     document.getElementById('icon-play').classList.add('hidden');
@@ -201,12 +199,18 @@
 
   function tick() {
     elapsed = Math.floor((Date.now() - startTime) / 1000);
+    sessionElapsed++;
     renderTimer(elapsed);
-    // tick flash every 10s as a subtle heartbeat
+
+    if (limit > 0 && sessionElapsed >= limit && !limitReached) {
+      limitReached = true;
+      playAlert();
+    }
+
     if (elapsed % 10 === 0) {
       const t = document.getElementById('timer');
       t.classList.remove('tick');
-      void t.offsetWidth; // reflow
+      void t.offsetWidth;
       t.classList.add('tick');
     }
   }
@@ -218,7 +222,6 @@
     document.getElementById('timer').textContent = `${h}:${m}:${sec}`;
   }
 
-  // --- Storage ---
   function todayKey() {
     const d = new Date();
     return `sit-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
@@ -229,41 +232,49 @@
     localStorage.setItem(todayKey(), JSON.stringify(data));
   }
 
-  // --- Sync ---
   async function syncData() {
-    if (running) pause(); // pause before syncing so we get accurate value
+    if (running) pause();
     saveLocal();
     setStatus('pending');
-
-    const payload = {date: todayKey(), elapsed};
 
     try {
       const res = await fetch('/api/sync', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload),
+        body: JSON.stringify({date: todayKey(), elapsed}),
       });
-
-      if (!res.ok) throw new Error('Server error');
-
+      if (!res.ok) throw new Error();
       const data = JSON.parse(localStorage.getItem(todayKey()) || '{}');
       data.synced = true;
       localStorage.setItem(todayKey(), JSON.stringify(data));
       setStatus('synced');
-
-    } catch (e) {
+    } catch {
       setStatus('offline');
     }
   }
 
   function setStatus(state) {
-    const dot = document.getElementById('status-dot');
-    const txt = document.getElementById('status-text');
-    dot.className = `status-dot ${state}`;
-    txt.textContent = state === 'synced' ? 'synced' : state === 'pending' ? 'pending sync' : 'offline';
+    document.getElementById('status-dot').className = `status-dot ${state}`;
+    document.getElementById('status-text').textContent =
+      state === 'synced' ? 'synced' : state === 'pending' ? 'pending sync' : 'offline';
   }
 
-  // Save on page hide
+  function playAlert() {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.frequency.value = 440;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5);
+
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 1.5);
+  }
+
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden' && running) {
       elapsed = Math.floor((Date.now() - startTime) / 1000);
