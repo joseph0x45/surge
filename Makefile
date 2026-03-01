@@ -9,4 +9,6 @@ tailwind.css:
 
 release: tailwind.css
 	GOOS=linux GOARCH=amd64 \
-		go build -tags release -ldflags "-X main.version=$(VERSION)" -o $(APP)
+		go build -tags release \
+		-ldflags '-X github.com/joseph0x45/surge/internal/buildinfo.Version=v1.0.3' \
+		-o $(APP)
